@@ -1,0 +1,26 @@
+version: '3.7'
+services:
+  ltijs:
+    env_file:
+      - .env
+    user: root
+    depends_on:
+      - mongodb
+    build:
+      dockerfile: Dockerfile
+    ports:
+      - "5002:80"
+  mongodb:
+    env_file:
+      - .env
+    #https://digitizedliving.com/2023/03/development/docker/initiate-your-mongodb-container-with-env-environment-variables/
+    image: mongo:latest
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: iamadmin
+      MONGO_INITDB_ROOT_PASSWORD: "51->7&7Fo6^&"
+      MONGODB_DB: ${DB}
+      MONGODB_USER: ${DB_USR}
+      MONGODB_PASSWORD: ${DB_PWD}
+    volumes:
+      - ./docker_mongoinit.sh:/docker-entrypoint-initdb.d/init.sh:ro
