@@ -26,19 +26,10 @@ const dbHost = process.env.DB_HOST;
 if (!dbHost) {
     throw new Error('Environment must specify db host (DB_HOST)');
 }
-const platformName = process.env.PLATFORM ?? 'moodle';
-const platformClientId = process.env.PLATFORM_CLIENTID;
-if (!platformClientId) {
-    throw new Error('Environment must specify platform client id (PLATFORM_CLIENTID)');
+const cookieKey = process.env.COOKIE_KEY;
+if (!cookieKey) {
+    throw new Error('Environment must specify cookie key for singing cookies (cookieKey)');
 }
-const platformUrl = process.env.PLATFORM_URL;
-if (!platformUrl) {
-    throw new Error('Environment must specify platform url (PLATFORM_URL)');
-}
-// Hardcoded to moodle auth and token endpoints.
-const platformAuthUrl = `${platformUrl}/mod/lti/auth.php`;
-const platformTokenUrl = `${platformUrl}/mod/lti/token.php`;
-const platformCertsUrl = `${platformUrl}/mod/lti/certs.php`;
 
 let parentDomain = process.env.PARENT_DOMAIN;
 if (!parentDomain?.length) {
@@ -64,12 +55,13 @@ const sslKey = process.env?.SSL_KEY;
 const options = { // Options
     appRoute: '/', loginRoute: '/login', keysetRoute: '/keyset', // Optionally, specify some of the reserved routes
     cookies: {
-        secure: false, // Set secure to true if the testing platform is in a different domain and https is being used
+        secure: true, // Set secure to true if the testing platform is in a different domain and https is being used
         sameSite: 'None' // Set sameSite to 'None' if the testing platform is in a different domain and https is being used
     },
     dynReg: {
-        url: `${url}/register`,
-        name: 'Chatbot LTI tool'
+        url: `${url}`,
+        name: 'Chatbot LTI tool',
+        autoActivate: true
     },
     devMode // Set DevMode to false if running in a production environment with https
 };
@@ -83,7 +75,7 @@ if (sslCert && sslKey) {
 }
 
 // Main set up.
-lti.setup(platformClientId, // Key used to sign cookies and tokens
+lti.setup(cookieKey, // Key used to sign cookies and tokens
     { // Database configuration
         url: `mongodb://${dbHost}/${db}`,
         connection: { user: dbUsr, pass: dbPwd }
@@ -112,16 +104,6 @@ const setup = async () => {
 
     // Deploy server and open connection to the database
     await lti.deploy({ port})
-
-    // Register platform
-    await lti.registerPlatform({
-        url: platformUrl,
-        name: platformName,
-        clientId: platformClientId,
-        authenticationEndpoint: platformAuthUrl,
-        accesstokenEndpoint: platformTokenUrl,
-        authConfig: { method: 'JWK_SET', key: platformCertsUrl }
-    });
 }
 
 setup();
