@@ -53,7 +53,10 @@ const sslCert = process.env?.SSL_CERT;
 const sslKey = process.env?.SSL_KEY;
 
 const options = { // Options
-    appRoute: '/', loginRoute: '/login', keysetRoute: '/keyset', // Optionally, specify some of the reserved routes
+    appRoute: '/',
+    loginRoute: '/login',
+    dynRegRoute: process.env.REGISTER_ROUTE ?? '/register',
+    keysetRoute: '/keyset', // Optionally, specify some of the reserved routes
     cookies: {
         secure: true, // Set secure to true if the testing platform is in a different domain and https is being used
         sameSite: 'None' // Set sameSite to 'None' if the testing platform is in a different domain and https is being used
@@ -92,6 +95,7 @@ lti.onConnect((token, req, res) => {
     res.cookie('token', jwtToken, {
         maxAge: 60 * 1000, // Has one minute for redirect to succeed.
         domain: parentDomain,
+        sameSite: 'none',
         secure: true,
         httpOnly: true
     });

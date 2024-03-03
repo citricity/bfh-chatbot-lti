@@ -6,5 +6,6 @@ services:
     user: root
     build:
       dockerfile: Dockerfile
+    restart: always
     ports:
       - "5002:80"
