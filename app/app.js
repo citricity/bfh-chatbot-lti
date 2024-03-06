@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 
 // Require Provider
-const lti = require('ltijs').Provider
+const lti = require('ltijs').Provider;
 
 const devMode = !!process.env.DEV_MODE;
 const url = process.env.URL;
@@ -101,6 +101,32 @@ lti.onConnect((token, req, res) => {
     });
 
     return res.redirect(`${chatbotUrl}`);
+});
+
+lti.onDeepLinking(async (deepLinkingRequest, req, res) => {
+    try {
+        // Define the deep link resource to be sent back.
+        // Adjust properties as needed for your specific resource and requirements.
+        const deepLinkResource = {
+            type: 'ltiResourceLink', // Type of LTI link
+            title: 'Reflective learning mentor', // Title of your resource
+            //url: `${chatbotUrl}`, // The URL to your resource
+            url
+            // You can add more properties here as needed.
+        };
+
+        // Create the deep linking form.
+        // This method will construct a form with the specified resources.
+        const form = await lti.DeepLinking.createDeepLinkingForm(deepLinkingRequest, [deepLinkResource], {message: 'Deep Linking Response'});
+
+        // Send the form HTML back to the LMS.
+        // Note: The LMS should automatically submit this form, completing the deep linking process.
+        res.setHeader('Content-Type', 'text/html');
+        return res.send(form);
+    } catch (error) {
+        console.error('Error handling deep linking request:', error);
+        return res.status(500).send('Internal Server Error');
+    }
 });
 
 const setup = async () => {
