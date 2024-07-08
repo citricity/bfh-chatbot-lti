@@ -92,15 +92,24 @@ lti.onConnect((token, req, res) => {
     const key = fs.readFileSync('rs256.rsa');
     const jwtToken = jwt.sign({ ...token }, key, { algorithm: 'RS256' });
 
-    res.cookie('token', jwtToken, {
-        maxAge: 60 * 1000, // Has one minute for redirect to succeed.
-        domain: parentDomain,
-        sameSite: 'none',
-        secure: true,
-        httpOnly: true
-    });
+    // Auto post the jwtToken to chainlit.
+    const form = `
+    <html>
+        <head><title>LTI redirect to chatbot</title></head>
+        <body>
+            <form name="redirect" method="post" action="${chatbotUrl}">
+                <input type=hidden name="token" value="${jwtToken}" />
+            </form>
+            <script>
+            window.onload = function(){
+                 document.forms['redirect'].submit();
+            }
+            </script>
+        </body>
+    </html>
+    `;
 
-    return res.redirect(`${chatbotUrl}`);
+    return res.send(form);
 });
 
 lti.onDeepLinking(async (deepLinkingRequest, req, res) => {
